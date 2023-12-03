@@ -1,0 +1,11 @@
+---
+pve_cluster:
+  children:
+    pve_cluster_starting_node:
+      hosts:
+        bagel:
+    pve_cluster_joining_nodes:
+      hosts:
+        obwarzanek:
+  vars:
+    pve_cluster_name: homelab

@@ -1,0 +1,25 @@
+---
+- name: Install
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package: powertop
+    state: present
+
+- name: Inject service file
+  ansible.builtin.template:
+    src: powertop.service.j2
+    dest: /lib/systemd/system/powertop.service
+  notify:
+    - powertop | reload
+    - powertop | restart
+
+- name: Ensure service is reloaded
+  ansible.builtin.meta: flush_handlers
+
+- name: Start and enable service
+  ansible.builtin.service:
+    name: powertop
+    state: started
+    enabled: true

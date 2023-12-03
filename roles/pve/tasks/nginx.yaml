@@ -1,0 +1,39 @@
+---
+- name: nginx | install
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package: nginx
+    state: present
+
+- name: nginx | remove default configuration
+  ansible.builtin.file:
+    state: absent
+    dest: "{{ item }}"
+  with_items:
+    - /etc/nginx/conf.d/default
+    - /etc/nginx/sites-enabled/default
+
+- name: nginx | inject configuration file
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/{{ ansible_facts.hostname }}.conf
+  notify: nginx | restart
+
+- name: nginx | inject service file
+  ansible.builtin.template:
+    src: nginx.service.j2
+    dest: /lib/systemd/system/nginx.service
+  notify:
+    - nginx | reload
+    - nginx | restart
+
+- name: nginx | ensure service is reloaded
+  ansible.builtin.meta: flush_handlers
+
+- name: nginx | start and enable service
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

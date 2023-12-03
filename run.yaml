@@ -1,0 +1,50 @@
+---
+- name: Prepare proxmox hosts
+  hosts: pve_cluster
+  gather_facts: false
+  tasks:
+
+    - name: Set root login
+      ansible.builtin.set_fact:
+        ansible_user: root
+
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+
+    - name: Set up pve
+      ansible.builtin.include_role:
+        name: pve
+
+    - name: Set up htop
+      ansible.builtin.include_role:
+        name: htop
+
+    - name: Set up powertop
+      ansible.builtin.include_role:
+        name: powertop
+
+    - name: Set up vim
+      ansible.builtin.include_role:
+        name: vim
+
+    - name: Install tools
+      ansible.builtin.apt:
+        cache_valid_time: 3600
+        install_recommends: false
+        force_apt_get: true
+        package:
+          - hdparm
+          - iperf
+          - minicom
+          - ncdu
+          - nmap
+          - sed
+          - sl
+          - smartmontools
+          - speedtest-cli
+          - sysstat
+          - tmux
+          - tree
+          - unzip
+          - wget
+        state: present

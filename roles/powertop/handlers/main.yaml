@@ -1,0 +1,17 @@
+---
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  when: ansible_facts.service_mgr == "systemd"
+  listen: powertop | reload
+
+- name: Reload service
+  ansible.builtin.service:
+    name: powertop
+    state: reloaded
+  when: ansible_facts.service_mgr != "systemd"
+
+- name: Restart service
+  ansible.builtin.service:
+    name: powertop
+    state: restarted

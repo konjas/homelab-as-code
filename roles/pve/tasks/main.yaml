@@ -1,0 +1,9 @@
+---
+- name: Configure apt
+  ansible.builtin.include_tasks: apt.yaml
+
+- name: Configure hardware
+  ansible.builtin.include_tasks: hw.yaml
+
+- name: Configure nginx
+  ansible.builtin.include_tasks: nginx.yaml

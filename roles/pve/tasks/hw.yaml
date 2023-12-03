@@ -1,0 +1,73 @@
+---
+- name: Set vm.swappiness
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: '0'
+    state: present
+    reload: true
+
+- name: Install intel microcode
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package: intel-microcode
+    state: present
+  notify: Reboot system
+
+- name: Enable IOMMU
+  ansible.builtin.lineinfile:
+    path: /etc/kernel/cmdline
+    regexp: '^(root=(?:(?!intel_iommu=on).)*?)$'
+    line: '\1 intel_iommu=on'
+    backup: true
+    backrefs: true
+  notify:
+    - Update boot tool
+    - Reboot system
+
+- name: Enable passthrough
+  ansible.builtin.lineinfile:
+    path: /etc/kernel/cmdline
+    regexp: '^(root=(?:(?!intel=pt).)*?)$'
+    line: '\1 intel=pt'
+    backup: true
+    backrefs: true
+  notify:
+    - Update boot tool
+    - Reboot system
+
+- name: Ensure kernel modules will be loaded at boot
+  ansible.builtin.template:
+    src: modules.j2
+    dest: /etc/modules
+  notify:
+    - Update initramfs
+    - Reboot system
+
+- name: cpufrequtils | install
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package: cpufrequtils
+    state: present
+
+- name: cpufrequtils | configure
+  ansible.builtin.lineinfile:
+    path: /etc/init.d/cpufrequtils
+    regexp: '^GOVERNOR='
+    line: 'GOVERNOR="powersave"'
+    backup: true
+  notify:
+    - cpufrequtils | reload
+    - cpufrequtils | restart
+
+- name: cpufrequtils | ensure service is reloaded
+  ansible.builtin.meta: flush_handlers
+
+- name: cpufrequtils | start and enable service
+  ansible.builtin.service:
+    name: cpufrequtils
+    state: started
+    enabled: true

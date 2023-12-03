@@ -1,0 +1,21 @@
+---
+- name: Install
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package:
+      - htop
+      - libsensors5
+    state: present
+
+- name: Prepare configuration directory
+  ansible.builtin.file:
+    state: directory
+    dest: .config/htop/
+
+- name: Configure
+  ansible.builtin.template:
+    src: htoprc.j2
+    dest: .config/htop/htoprc
+
