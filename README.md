@@ -11,12 +11,12 @@ To generate encrypted password, follow these steps:
 echo 'pve: this-is-an-encryption-password' >> $HOME/.ansible/secrets.txt
 ```
 
-2. Encrypt the cluster password, using the encryption password and the variable name:
+2. Encrypt the cluster password, using the created secret and the variable name:
 ```
 ansible-vault encrypt_string --vault-id pve@$HOME/.ansible/secrets.txt 'my-top-secret-cluster-password' --name 'pve_cluster_pass'
 ```
 
-3. The encrypted value will be prited. Paste it to the yaml file specified at the beginning.
+3. The encrypted value will be printed. Paste it to the yaml file specified at the beginning.
 
 ## how to apply
 
@@ -30,10 +30,10 @@ If you're using plaintext password, just omit the `--vault-id <id>@<path>` param
 ## what it does
 
 Uses SSH to login as root to the proxmox hosts to:
+* create a PVE cluster on selected Proxmox server
+* join all the other Proxmox servers to the PVE cluster
 * configure APT to use non-free Debian software
 * configure reverse proxy to enable web interface on port 80
 * enable power saving features
 * enable PCI(e) devices passthrough to vistual machines
 * install useful tools, like vim, htop or ncdu and configure them using my favourite settings
-* create a PVE cluster on selected Proxmox server
-* join all the other Proxmox servers to the PVE cluster
