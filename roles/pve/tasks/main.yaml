@@ -1,4 +1,12 @@
 ---
+- name: Disable no subsciption banner
+  ansible.builtin.lineinfile:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: '^(\s*let res\s*=\s*)response.result;\s*$'
+    line: '\1 {"data": {"status": "active"}};'
+    backup: true
+    backrefs: true
+
 - name: Configure apt
   ansible.builtin.include_tasks: apt.yaml
 
