@@ -1,15 +1,58 @@
 ---
-- name: Prepare proxmox hosts
-  hosts: pve_cluster
+- name: Create PVE cluster
+  hosts: pve_cluster_starting_node
   gather_facts: false
   tasks:
 
-    - name: Set root login
-      ansible.builtin.set_fact:
-        ansible_user: root
+    - name: Check cluster status
+      ansible.builtin.shell: pvecm status | grep -e "^Node ID"
+      register: cluster_status
+      ignore_errors: yes
+      changed_when: False
 
-    - name: Gather facts
-      ansible.builtin.gather_facts:
+    - name: Create cluster
+      command: "pvecm create {{ pve_cluster_name }}"
+      when: "cluster_status.rc==1"
+
+- name: Join hosts to PVE cluster
+  hosts: pve_cluster
+  gather_facts: true
+  tasks:
+
+    - name: Check cluster status
+      shell: pvecm status | grep -e "^Node ID"
+      register: cluster_status
+      ignore_errors: yes
+      changed_when: False
+
+    - name: Install pexpect
+      ansible.builtin.apt:
+        cache_valid_time: 3600
+        install_recommends: false
+        force_apt_get: true
+        package: python3-pexpect
+        state: present
+
+    - name: Add node to cluster
+      expect:
+        command: "pvecm add {{ hostvars[ groups['pve_cluster_starting_node'][0] ].inventory_hostname }}"
+        responses:
+          Please enter superuser \(root\) password for .*: "{{ pve_cluster_pass }}"
+          Are you sure you want to continue connecting .*: "yes"
+      register: ret
+      failed_when: >
+        ('abort!'                       in ret.stdout) or
+        ('hostname verification failed' in ret.stdout) or
+        ("Can't connect to"             in ret.stdout) or
+        (ret.rc != 0)
+      changed_when: >
+        ("successfully added node" in ret.stdout)
+      when: "cluster_status.rc==1"
+
+- name: Configure PVE cluster hosts
+  hosts: pve_cluster
+  gather_facts: true
+  tasks:
 
     - name: Set up pve
       ansible.builtin.include_role:
