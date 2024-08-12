@@ -2,6 +2,7 @@
 pve_cluster:
   hosts:
     bagel:
+    challah:
     kolach:
     obwarzanek:
   children:
