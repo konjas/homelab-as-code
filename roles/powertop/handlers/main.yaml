@@ -10,8 +10,10 @@
     name: powertop
     state: reloaded
   when: ansible_facts.service_mgr != "systemd"
+  listen: powertop | reload
 
 - name: Restart service
   ansible.builtin.service:
     name: powertop
     state: restarted
+  listen: powertop | restart
