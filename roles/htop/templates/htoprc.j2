@@ -34,7 +34,7 @@ hide_function_bar=0
 {% if ansible_facts.processor_vcpus > 10 %}
 header_layout=three_50_25_25
 column_meters_0=AllCPUs4 CPU
-{% if ansible_facts.processor_vcpus > 5 %}
+{% elif ansible_facts.processor_vcpus > 5 %}
 header_layout=three_50_25_25
 column_meters_0=AllCPUs2 CPU
 {% else %}
