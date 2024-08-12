@@ -1,13 +1,15 @@
 {{ ansible_managed | comment }}
 [Unit]
 Description=Extend the battery life of laptop
+# Following line ensures NICs are set up properly before enabling power saving
+After=network-online.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/sbin/powertop --auto-tune
 {% if ansible_facts.hostname == 'bagel' %}
-# Following line is a workaround for ethernet card interruptions issue
+# Following line is a workaround for NIC interruptions issue
 ExecStart=/bin/sh -c "echo 'on' > /sys/bus/pci/devices/0000:00:1c.6/power/control"
 {% endif %}
 
