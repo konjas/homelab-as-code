@@ -1,0 +1,10 @@
+---
+- name: Ensure domain configuration
+  ansible.builtin.template:
+    src: resolv.conf.j2
+    dest: /etc/resolv.conf
+
+- name: Ensure localhost configuration
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
