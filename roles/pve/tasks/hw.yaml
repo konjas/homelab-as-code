@@ -1,4 +1,26 @@
 ---
+- name: Install
+  ansible.builtin.apt:
+    cache_valid_time: 3600
+    install_recommends: false
+    force_apt_get: true
+    package: lshw
+    state: present
+
+- name: Get all PCI network devices
+  ansible.builtin.command:
+    cmd: lshw -class net -numeric -json
+  register: __pci_net_devs
+  changed_when: false
+
+- name: Set PCI network devices fact
+  ansible.builtin.set_fact:
+    pci_network_devices: "{{ __pci_net_devs.stdout | from_json | json_query('[]') }}"
+  changed_when: false
+
+- debug:
+    var: pci_network_devices
+
 - name: Set vm.swappiness
   ansible.posix.sysctl:
     name: vm.swappiness
@@ -37,6 +59,32 @@
   notify:
     - Update boot tool
     - Reboot system
+
+- name: Enable bus assignment for all PCI devices
+  ansible.builtin.lineinfile:
+    path: /etc/kernel/cmdline
+    regexp: '^(root=(?:(?!pci=assign-busses).)*?)$'
+    line: '\1 pci=assign-busses'
+    backup: true
+    backrefs: true
+  notify:
+    - Update boot tool
+    - Reboot system
+
+#- name: Split PCIe devices into separate IOMMU groups
+#  when: iommu_split_devices is defined
+#  notify:
+#    - Update boot tool
+#    - Reboot system
+#  block:
+#
+#    - name: Enable Access Control Services override for selected devices
+#      ansible.builtin.lineinfile:
+#        path: /etc/kernel/cmdline
+#        regexp: '^(root=.*\s+pcie_acs_override=)\S+(.*)$'
+#        line: '\1{{ ["id:"] | product(iommu_split_devices) | map("join") | list | join(",") }}\2'
+#        backup: true
+#        backrefs: true
 
 - name: Ensure kernel modules will be loaded at boot
   ansible.builtin.template:
