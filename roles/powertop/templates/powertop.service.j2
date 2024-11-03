@@ -8,16 +8,14 @@ After=network-online.target
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/sbin/powertop --auto-tune
-# NIC power saving causes interfaces not to go up after going down (recabling, switch reboot, etc.)
-# Disable power saving as in following example:
-# ExecStart=/bin/sh -c "echo 'on' > /sys/bus/pci/devices/0000:00:1c.6/power/control"
-{% if ansible_facts.hostname == 'bagel' %}
-ExecStart=/bin/sh -c "echo on > /sys/bus/pci/devices/0000:00:1c.6/power/control"
-{% elif ansible_facts.hostname == 'challah' %}
-ExecStart=/bin/sh -c "echo on > /sys/bus/pci/devices/0000:00:1f.6/power/control"
-{% elif ansible_facts.hostname == 'obwarzanek' %}
-ExecStart=/bin/sh -c "echo on > /sys/bus/pci/devices/0000:02:00.0/power/control"
-{% endif %}
+# NIC power saving causes multiple issues, for example:
+#   - interfaces not to go up after going down (recabling, switch reboot, etc.)
+#   - lost link during SR-IOV configuration
+#   - IRQ issues
+# NIC power saving deactivated:
+{% for device in pci_network_devices %}
+ExecStart=/bin/sh -c "echo on > /sys/bus/pci/devices/{{ device.businfo.split('@')[1] }}/power/control"
+{% endfor %}
 
 [Install]
 WantedBy=multi-user.target
