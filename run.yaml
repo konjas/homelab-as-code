@@ -34,6 +34,14 @@
       changed_when: false
       failed_when: false
 
+    - name: Ensure APT cache is updated
+      ansible.builtin.apt:
+        cache_valid_time: 1
+        force_apt_get: true
+        update_cache: true
+      failed_when: false
+      changed_when: false
+
     - name: Install pexpect
       ansible.builtin.apt:
         update_cache: false
@@ -59,6 +67,10 @@
         ("successfully added node" in ret.stdout)
       when: "cluster_status.rc==1"
 
+    - name: Ensure the certificates are valid on each cluster node
+      command:
+        cmd: pvecm updatecerts
+
 - name: Ensure proper configuration of PVE hosts
   hosts: pve_cluster
   gather_facts: true
@@ -68,6 +80,10 @@
       ansible.builtin.include_role:
         name: pve
 
+    - name: Set up vim
+      ansible.builtin.include_role:
+        name: vim
+
     - name: Set up htop
       ansible.builtin.include_role:
         name: htop
@@ -75,10 +91,6 @@
     - name: Set up powertop
       ansible.builtin.include_role:
         name: powertop
-
-    - name: Set up vim
-      ansible.builtin.include_role:
-        name: vim
 
     - name: Install tools
       ansible.builtin.apt:
