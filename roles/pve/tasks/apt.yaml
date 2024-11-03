@@ -73,7 +73,7 @@
 
 - name: Ensure APT cache is updated
   ansible.builtin.apt:
-    cache_valid_time: 3600
+    cache_valid_time: 1
     force_apt_get: true
     update_cache: true
   failed_when: false
