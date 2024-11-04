@@ -112,6 +112,7 @@
           - sysstat
           - tmux
           - tree
+          - unrar
           - unzip
           - wget
         state: present
